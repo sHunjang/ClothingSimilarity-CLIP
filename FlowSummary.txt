@@ -1,0 +1,7 @@
+전체 흐름 요약
+
+1. Dataset/ 내에 있는 모든 의류 이미지들을 벡터(임베딩)로 변환
+2. queries/ 내에 있는 스타일 이미지(쿼리)를 하나씩 벡터화
+3. 쿼리 이미지와 dataset 이미지들 간 cosine_similarity 계산
+4. top-K 유사 이미지를 가져와서 정답(Class)이 포함되어 있는지 평가
+5. 전체 쿼리에 대해 Top-K Accuracy 계산 및 출력
