@@ -1,6 +1,7 @@
 import os
 import torch
 import clip
+import csv
 from PIL import Image
 from tqdm import tqdm
 from collections import defaultdict
@@ -52,33 +53,50 @@ def get_topk_similar(query_feature, dataset_features, labels, paths, k=5):
 # 쿼리 이미지 파일명을 기준으로 정답 class 추출 (ex. Hoodie_01.jpg -> hoodie)
 # Top-K 결과 중에서 정답 Class가 포함되어 있는지 확인
 # 전체 쿼리 이미지들에 대해 Accuracy 계산
-def evaluate(query_folder, dataset_root, k=5):
+def evaluate(query_folder, dataset_root, k=5, save_path="clip_results.csv"):
     dataset_features, dataset_labels, dataset_paths = load_dataset_features(dataset_root)
     correct = 0
     total = 0
+    results = []
 
     for file in tqdm(os.listdir(query_folder)):
         if not file.lower().endswith(('.jpg', '.png')): continue
         query_path = os.path.join(query_folder, file)
         query_feature = get_image_feature(query_path)
 
-        # 정답 클래스명 추출 ex: "hoodie_01.jpg"
-        gt_class = file.split("_")[0]  # ex: hoodie
-
+        gt_class = file.split("_")[0]  # 정답 클래스 추출
         topk = get_topk_similar(query_feature, dataset_features, dataset_labels, dataset_paths, k)
 
         predicted_classes = [label for _, label, _ in topk]
-        if gt_class in predicted_classes:
+        is_hit = int(gt_class in predicted_classes)
+        if is_hit:
             correct += 1
         total += 1
 
-        # 결과 출력
+        # 결과 저장용 리스트 생성
+        result_row = {
+            "query_image": file,
+            "gt_class": gt_class,
+            **{f"top{i+1}_class": topk[i][1] for i in range(k)},
+            **{f"top{i+1}_score": round(topk[i][2], 4) for i in range(k)},
+            "hit": is_hit
+        }
+        results.append(result_row)
+
+        # 콘솔 출력
         print(f"\n🔍 Query: {file} | 정답: {gt_class}")
         for i, (path, label, score) in enumerate(topk):
             print(f"  {i+1}. {label} ({score:.4f}) - {os.path.basename(path)}")
 
     acc = correct / total if total else 0
     print(f"\n✅ Top-{k} Accuracy: {acc:.2%} ({correct}/{total})")
+
+    # CSV 저장
+    with open(save_path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=results[0].keys())
+        writer.writeheader()
+        writer.writerows(results)
+    print(f"\n📁 결과 CSV 저장 완료: {save_path}")
 
 
 
