@@ -1,6 +1,32 @@
-# Dataset
-/Dataset
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.so
 
+# Virtual environment
+venv/
+env/
+.clip-env/
+*.egg-info/
 
-# misc
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# macOS system files
 .DS_Store
+
+# Logs and debug
+*.log
+
+# VSCode or PyCharm settings (optional)
+.vscode/
+.idea/
+
+# Results and outputs
+*.csv
+results/
+outputs/
+
+# Dataset and experimental data
+dataset/
+queries/
